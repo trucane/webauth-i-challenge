@@ -12,7 +12,9 @@ module.exports = {
 
 
 function findUsers(){
-    return db('users');
+    return db('users')
+        .select('id', 'isLoggedIn', 'username')
+    ;
 }
 
 function findUserBy(id){
@@ -30,14 +32,15 @@ function findUserBy(id){
 function registerUser(data){
     const hash = bcrypt.hashSync(data.password, 12);
     data.password = hash;
-    return db('users').insert({...data, isLoggedIn:1});
+    return db('users').insert({...data, isLoggedIn:0});
 }
 
-function loginUser(data){
+function loginUser(data, req){
     const {username , password} = data;
     return db('users').first()
     .where({username}).then(user =>{
         if(user && bcrypt.compareSync(password, user.password)){
+            req.session.username = username;
             return db('users').update({isLoggedIn:1}).where({username})
         }else{
             return null
