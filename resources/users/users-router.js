@@ -58,7 +58,6 @@ router.post('/register', async (req, res) =>{
 
 router.post('/login', async (req, res) =>{
     const {username, password} = req.body;
-    console.log('hello')
     if(!username || !password){
         res.status(206).json({message:"Missing name and/or password"})
     }else{
@@ -75,12 +74,22 @@ router.post('/login', async (req, res) =>{
     }
 });
 
-router.get('/logout', (req, res) =>{
-    if(req.session){
-        req.session.destroy();
-        res.status(200).json({message:"you have logges out"})
-    }else{
-        res.status(200).json({message:"bye"})
+router.get('/logout', async (req, res) =>{
+    if(req.headers || req.session){
+        const {username} = req.headers
+        if(req.session){
+            const isLoggedIn = 0
+            const user = await Users.findUserBy({username})
+            if(user){
+                const updated = await Users.updateUser({isLoggedIn},{username});
+                req.session.destroy();
+                res.status(200).json({message:"you have logges out"})
+            }else{
+                res.status(401).json({message:"Could not logg you out"})
+            }
+        }else{
+            res.status(200).json({message:"bye"})
+        }
     }
 });
 
