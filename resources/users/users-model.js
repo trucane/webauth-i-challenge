@@ -1,6 +1,7 @@
 const db = require('../../data/dbConfig');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const secrets = require('../../data/config/secrets')
 
 
 
@@ -23,7 +24,6 @@ function findUserBy(filter){
     return db('users')
     .first()
     .where(filter)
-    .select('id', 'isLoggedIn', 'username')
     .then(user =>{
         if(user){
             return user;
@@ -41,12 +41,15 @@ function registerUser(data){
 
 function loginUser(data, req){
     const {username , password} = data;
+    
     return findUserBy({username})
         .then(user =>{
+            
             if(user && bcrypt.compareSync(password, user.password)){
-                //const token = generateToken(user)
-            // console.log('token', token)
-                req.session.username = username;
+                
+                const token = generateToken(user)
+                console.log('token', token)
+                //req.session.username = username;
                 return db('users').update({isLoggedIn:1}).where({username})
             }else{
                 return null
@@ -62,12 +65,13 @@ function updateUser (data, filter) {
 function generateToken(user){
     const jwtPayload = {
         subject: user.id,
-        username:user.username
+        username:user.username,
     }
 
-    const jwtSecret = process.env.JWT_SECRET;
     const jwtOptions = {
         expiresIn:"1d"
     }
-    return jwt.sign(jwtPayload, jwtSecret, jwtOptions)
+    return jwt.sign(jwtPayload, secrets.jwtSecret, jwtOptions)
 }
+
+// ;LFJAOSN;JO;ojoirj49898Ojnc;OZIhf89wh*c;dsfe
